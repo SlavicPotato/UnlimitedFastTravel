@@ -75,7 +75,6 @@ namespace SKSE
             return false;
         }
 
-
         auto alignTo = Hook::GetAllocGranularity();
         ASSERT(alignTo > 0);
 

@@ -5,16 +5,25 @@ namespace UFT
     using namespace JITASM;
     using namespace Patching;
 
-    typedef bool(__cdecl* isOverEncumbered_t)(void* actor);
+    typedef bool(__cdecl* isOverEncumbered_t)(void*);
     static auto IsOverEncumbered_O = IAL::Addr<isOverEncumbered_t>(36457);
 
-    typedef bool(__cdecl* guardsPursuing_t)(void* p1, Actor* actor, int32_t p3, int8_t p4);
+    typedef bool(__cdecl* guardsPursuing_t)(void*, Actor*, int32_t, int8_t);
     static auto GuardsPursuing_O = IAL::Addr<guardsPursuing_t>(40314);
+
+    typedef bool(__cdecl* takingDamage_t)(void*);
+    static auto TakingDamage_O = IAL::Addr<takingDamage_t>(33736);
+
+    typedef bool(__cdecl* inCombat_t)(void*, uint64_t);
+    static auto InCombat_O = IAL::Addr<inCombat_t>(40388);
+
+    typedef bool(__cdecl* inAir_t)(void*);
+    static auto InAir_O = IAL::Addr<inAir_t>(36259);
 
     static auto unkGlob1 = IAL::Addr<void**>(514167);
 
-    typedef void(__cdecl* unkfunc1_t)(void* p1, Actor* actor, uint64_t p3);
-    typedef void(__cdecl* unkfunc2_t)(Actor* actor, uint8_t p3);
+    typedef void(__cdecl* unkfunc1_t)(void*, Actor*, uint64_t);
+    typedef void(__cdecl* unkfunc2_t)(Actor*, uint8_t);
 
     static auto unkfunc1 = IAL::Addr<unkfunc1_t>(40330);
     static auto unkfunc2 = IAL::Addr<unkfunc2_t>(36465);
@@ -46,9 +55,22 @@ namespace UFT
         return GuardsPursuing_O(p1, actor, p3, p4);
     }
 
-    static bool AllowCombatTravelHook()
+    static bool TakingDamage_Hook(void* p1)
     {
-        return pft_state.combat;
+        if (pft_state.taking_damage) {
+            return false;
+        }
+
+        return TakingDamage_O(p1);
+    }
+
+    static bool InCombat_Hook(void *p1, uint64_t p2)
+    {
+        if (pft_state.combat) {
+            return false;
+        }
+
+        return InCombat_O(p1, p2);
     }
 
     static bool AllowLocationTravelHook()
@@ -67,6 +89,15 @@ namespace UFT
         return allow;
     }
 
+    static bool InAir_Hook(void *p1)
+    {
+        if (pft_state.in_air) {
+            return false;
+        }
+
+        return InAir_O(p1);
+    }
+
     static void MessageHandler(SKSEMessagingInterface::Message* message)
     {
         if (message->type == SKSEMessagingInterface::kMessage_DataLoaded) {
@@ -80,14 +111,16 @@ namespace UFT
         pft_state.over_encumbered = true;
         pft_state.guards_pursuing = true;
         pft_state.combat = true;
+        pft_state.taking_damage = true;
         pft_state.location = true;
+        pft_state.in_air = false;
         pft_state.worldspace_travel = false;
     }
 
     static void ApplyPatches()
     {
-        struct FastTravelInject : JITASM {
-            FastTravelInject(uintptr_t retnOKAddr, uintptr_t retnBadBaseAddr, uintptr_t callAddr)
+        struct FastTravelLocationInject : JITASM {
+            FastTravelLocationInject(uintptr_t retnOKAddr, uintptr_t retnBadBaseAddr, uintptr_t callAddr)
                 : JITASM()
             {
                 Xbyak::Label retnOKLabel;
@@ -124,32 +157,34 @@ namespace UFT
             }
         };
 
-        Message("Patching combat..");
-        {
-            uintptr_t target = ftCheckFunc + 0xAC;
-
-            FastTravelInject code(target - 0x73, target, uintptr_t(AllowCombatTravelHook));
-            g_branchTrampoline.Write5Branch(target, code.get());
-        }
-
-        Message("Patching location..");
+        Message("Location..");
         {
             uintptr_t target = ftCheckFunc + 0x226;
 
-            FastTravelInject code(target + 0x55, target + 0x4, uintptr_t(AllowLocationTravelHook));
+            FastTravelLocationInject code(target + 0x55, target + 0x4, uintptr_t(AllowLocationTravelHook));
             g_branchTrampoline.Write6Branch(target, code.get());
             //safe_memset(target + 0x6, 0xCC, 3);
         }
+
     }
 
     static void InstallHooks()
     {
-        Message("Over-encumbered hooks..");
+        Message("In combat..");
+        g_branchTrampoline.Write5Call(ftCheckFunc + 0xA3, uintptr_t(InCombat_Hook));
+
+        Message("Guard pursuit..");
+        g_branchTrampoline.Write5Call(ftCheckFunc + 0xDE, uintptr_t(GuardsPursuing_Hook));
+
+        Message("Taking damage..");
+        g_branchTrampoline.Write5Call(ftCheckFunc + 0x135, uintptr_t(TakingDamage_Hook));
+
+        Message("Over-encumbered..");
         g_branchTrampoline.Write5Call(ftFunc + 0x4A, uintptr_t(IsOverEncumbered_Hook));
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x108, uintptr_t(IsOverEncumbered_Hook));
 
-        Message("Guard pursuit hook..");
-        g_branchTrampoline.Write5Call(ftCheckFunc + 0xDE, uintptr_t(GuardsPursuing_Hook));
+        Message("In air..");
+        g_branchTrampoline.Write5Call(ftCheckFunc + 0x185, uintptr_t(InAir_Hook));
     }
 
     void Initialize()

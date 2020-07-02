@@ -59,13 +59,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
-    <None Include="..\Scripts\UnrestrictedFastTravel.psc">
-      <Filter>Scripts</Filter>
-    </None>
     <None Include="..\Scripts\nPFT_MCM.psc">
       <Filter>Scripts</Filter>
     </None>
     <None Include="..\Scripts\nPFT_MCM_PlayerAlias.psc">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\Scripts\UnlimitedFastTravel.psc">
       <Filter>Scripts</Filter>
     </None>
   </ItemGroup>

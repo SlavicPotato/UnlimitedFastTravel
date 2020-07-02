@@ -1,4 +1,4 @@
-Scriptname UnrestrictedFastTravel Hidden
+Scriptname UnlimitedFastTravel Hidden
 
 Int Function GetScriptVersion() global
     return 1

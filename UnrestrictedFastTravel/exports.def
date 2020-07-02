@@ -1,4 +1,4 @@
-LIBRARY UnrestrictedFastTravel
+LIBRARY UnlimitedFastTravel
 EXPORTS
     SKSEPlugin_Query
     SKSEPlugin_Load

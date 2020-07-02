@@ -13,7 +13,9 @@ namespace UFT
         std::atomic<bool> over_encumbered;
         std::atomic<bool> guards_pursuing;
         std::atomic<bool> combat;
+        std::atomic<bool> taking_damage;
         std::atomic<bool> location;
+        std::atomic<bool> in_air;
         std::atomic<bool> worldspace_travel;
     };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#define PLUGIN_NAME					"UnrestrictedFastTravel"
+#define PLUGIN_NAME					"UnlimitedFastTravel"
 #define PLUGIN_AUTHOR				"SlavicPotato"
 
 #include "version.h"
