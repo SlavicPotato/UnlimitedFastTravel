@@ -80,9 +80,10 @@ namespace UFT
         if (allow && !pft_state.worldspace_travel)
         {
             auto player = *g_thePlayer;
-            if (player->parentCell != nullptr) {
-                return (player->parentCell->cellFlags & TESObjectCELL::kIsInteriorCell) ==
-                    TESObjectCELL::kIsInteriorCell;
+            auto worldspace = player->currentWorldSpace;
+
+            if (worldspace != nullptr) {
+                return !(worldspace->flags & TESWorldSpace::kCantFastTravel);
             }
         }
 
@@ -201,7 +202,7 @@ namespace UFT
         ApplyPatches();
         InstallHooks();
 
-        Message("Init done");
+        Message("Done");
     }
 
     auto FastTravelEventHandler::ReceiveEvent(TESFastTravelEndEvent* evn, EventDispatcher<TESFastTravelEndEvent>* dispatcher)
