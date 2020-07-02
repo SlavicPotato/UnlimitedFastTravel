@@ -58,7 +58,6 @@ namespace UFT
         default:
             return;
         }
-        //Message("Setting PFT override: %ld %d", c, v);
     }
 
     static UInt32 PP_GetVersion(StaticFunctionTag* base)

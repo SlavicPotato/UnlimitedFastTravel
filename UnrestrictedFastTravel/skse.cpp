@@ -5,7 +5,6 @@ namespace SKSE
     constexpr size_t MAX_TRAMPOLINE_BRANCH = 256;
     constexpr size_t MAX_TRAMPOLINE_CODEGEN = 256;
 
-
     PluginHandle g_pluginHandle = kPluginHandle_Invalid;
 
     SKSEMessagingInterface* g_messaging;
