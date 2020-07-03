@@ -11,7 +11,8 @@ namespace UFT
         kPFT_GuardsPursuing,
         kPFT_OverEncumbered,
         kPFT_InAir,
-        kPFT_WorldspaceTravel
+        kPFT_WorldspaceTravel,
+        kPFT_ScriptCondition
     };
 
     extern bool RegisterFunctions(VMClassRegistry* registry);

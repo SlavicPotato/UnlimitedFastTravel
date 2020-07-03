@@ -17,6 +17,7 @@ namespace UFT
         std::atomic<bool> location;
         std::atomic<bool> in_air;
         std::atomic<bool> worldspace_travel;
+        std::atomic<bool> script_cond;
     };
 
     extern PFTState pft_state;

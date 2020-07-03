@@ -19,6 +19,8 @@ namespace UFT
             return pft_state.in_air;
         case PFTOverrideCodes::kPFT_WorldspaceTravel:
             return pft_state.worldspace_travel;
+        case PFTOverrideCodes::kPFT_ScriptCondition:
+            return pft_state.script_cond;
         }
         return false;
     }
@@ -33,6 +35,7 @@ namespace UFT
             pft_state.guards_pursuing = v;
             pft_state.over_encumbered = v;
             pft_state.in_air = v;
+            pft_state.script_cond = v;
             break;
         case PFTOverrideCodes::kPFT_Combat:
             pft_state.combat = v;
@@ -54,6 +57,9 @@ namespace UFT
             break;
         case PFTOverrideCodes::kPFT_WorldspaceTravel:
             pft_state.worldspace_travel = v;
+            break;
+        case PFTOverrideCodes::kPFT_ScriptCondition:
+            pft_state.script_cond = v;
             break;
         }
     }

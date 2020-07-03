@@ -5,19 +5,19 @@ namespace UFT
     using namespace JITASM;
     using namespace Patching;
 
-    typedef bool(__cdecl* isOverEncumbered_t)(void*);
+    typedef bool(__cdecl* isOverEncumbered_t)(Actor*);
     static auto IsOverEncumbered_O = IAL::Addr<isOverEncumbered_t>(36457);
 
     typedef bool(__cdecl* guardsPursuing_t)(void*, Actor*, int32_t, int8_t);
     static auto GuardsPursuing_O = IAL::Addr<guardsPursuing_t>(40314);
 
-    typedef bool(__cdecl* takingDamage_t)(void*);
+    typedef bool(__cdecl* takingDamage_t)(MagicTarget*);
     static auto TakingDamage_O = IAL::Addr<takingDamage_t>(33736);
 
     typedef bool(__cdecl* inCombat_t)(void*, uint64_t);
     static auto InCombat_O = IAL::Addr<inCombat_t>(40388);
 
-    typedef bool(__cdecl* inAir_t)(void*);
+    typedef bool(__cdecl* inAir_t)(PlayerCharacter*);
     static auto InAir_O = IAL::Addr<inAir_t>(36259);
 
     static auto unkGlob1 = IAL::Addr<void**>(514167);
@@ -37,6 +37,8 @@ namespace UFT
 
     static bool IsOverEncumbered_Hook(Actor* actor)
     {
+        //Message(">> %d", (*g_thePlayer)->unkBD9 & PlayerCharacter::kFastTravelEnabled);
+
         // Actor check probably unnecessary, should always be player
         if (pft_state.over_encumbered &&
             actor == *g_thePlayer)
@@ -56,7 +58,7 @@ namespace UFT
         return GuardsPursuing_O(p1, actor, p3, p4);
     }
 
-    static bool TakingDamage_Hook(void* p1)
+    static bool TakingDamage_Hook(MagicTarget* p1)
     {
         if (pft_state.taking_damage) {
             return false;
@@ -90,13 +92,22 @@ namespace UFT
         return allow;
     }
 
-    static bool InAir_Hook(void *p1)
+    static bool InAir_Hook(PlayerCharacter*p1)
     {
         if (pft_state.in_air) {
             return false;
         }
 
         return InAir_O(p1);
+    }
+
+    static bool ScriptCond_Hook(PlayerCharacter *player)
+    {
+        if (pft_state.script_cond) {
+            return true;
+        }
+
+        return (player->unkBD9 & PlayerCharacter::kFastTravelEnabled) != 0;
     }
 
     static void MessageHandler(SKSEMessagingInterface::Message* message)
@@ -116,50 +127,51 @@ namespace UFT
         pft_state.location = true;
         pft_state.in_air = false;
         pft_state.worldspace_travel = false;
+        pft_state.script_cond = false;
     }
 
     static void ApplyPatches()
     {
-        struct FastTravelLocationInject : JITASM {
-            FastTravelLocationInject(uintptr_t retnOKAddr, uintptr_t retnBadBaseAddr, uintptr_t callAddr)
-                : JITASM()
-            {
-                Xbyak::Label retnOKLabel;
-                Xbyak::Label retnBlockLabel;
-                Xbyak::Label retnBlockNMLabel;
-                Xbyak::Label callLabel;
-
-                Xbyak::Label blockTravel;
-                Xbyak::Label blockTravelNoMsg;
-
-                call(ptr[rip + callLabel]);
-                test(al, al);
-                je(blockTravel);
-                mov(bl, al);
-                jmp(ptr[rip + retnOKLabel]);
-                L(blockTravel);
-                test(dil, dil);
-                jne(blockTravelNoMsg);
-                jmp(ptr[rip + retnBlockLabel]);
-                L(blockTravelNoMsg);
-                jmp(ptr[rip + retnBlockNMLabel]);
-
-                L(retnOKLabel);
-                dq(retnOKAddr);
-
-                L(retnBlockLabel);
-                dq(retnBadBaseAddr + 0x5);
-
-                L(retnBlockNMLabel);
-                dq(retnBadBaseAddr + 0x16);
-
-                L(callLabel);
-                dq(callAddr);
-            }
-        };
-
-        Message("Location..");
+        Message("Location ..");
         {
+            struct FastTravelLocationInject : JITASM {
+                FastTravelLocationInject(uintptr_t retnOKAddr, uintptr_t retnBadBaseAddr, uintptr_t callAddr)
+                    : JITASM()
+                {
+                    Xbyak::Label retnOKLabel;
+                    Xbyak::Label retnBlockLabel;
+                    Xbyak::Label retnBlockNMLabel;
+                    Xbyak::Label callLabel;
+
+                    Xbyak::Label blockTravel;
+                    Xbyak::Label blockTravelNoMsg;
+
+                    call(ptr[rip + callLabel]);
+                    test(al, al);
+                    je(blockTravel);
+                    mov(bl, al);
+                    jmp(ptr[rip + retnOKLabel]);
+                    L(blockTravel);
+                    test(dil, dil);
+                    jne(blockTravelNoMsg);
+                    jmp(ptr[rip + retnBlockLabel]);
+                    L(blockTravelNoMsg);
+                    jmp(ptr[rip + retnBlockNMLabel]);
+
+                    L(retnOKLabel);
+                    dq(retnOKAddr);
+
+                    L(retnBlockLabel);
+                    dq(retnBadBaseAddr + 0x5);
+
+                    L(retnBlockNMLabel);
+                    dq(retnBadBaseAddr + 0x16);
+
+                    L(callLabel);
+                    dq(callAddr);
+                }
+            };
+
             uintptr_t target = ftCheckFunc + 0x226;
 
             FastTravelLocationInject code(target + 0x55, target + 0x4, uintptr_t(LocationTravel_Hook));
@@ -167,24 +179,54 @@ namespace UFT
             //safe_memset(target + 0x6, 0xCC, 3);
         }
 
+        Message("Script condition ..");
+        {
+            struct ScriptFTInject : JITASM {
+                ScriptFTInject(uintptr_t retnAddr, uintptr_t callAddr)
+                    : JITASM()
+                {
+                    Xbyak::Label retnLabel;
+                    Xbyak::Label callLabel;
+
+                    Xbyak::Label blockTravel;
+                    Xbyak::Label blockTravelNoMsg;
+
+                    mov(rcx, rsi);
+                    call(ptr[rip + callLabel]);
+                    test(al, al);
+                    jmp(ptr[rip + retnLabel]);
+
+                    L(retnLabel);
+                    dq(retnAddr);
+
+                    L(callLabel);
+                    dq(callAddr);
+                }
+            };
+
+            uintptr_t target = ftCheckFunc + 0x158;
+
+            ScriptFTInject code(target + 0x7, uintptr_t(ScriptCond_Hook));
+            g_branchTrampoline.Write6Branch(target, code.get());
+        }
     }
 
     static void InstallHooks()
     {
-        Message("In combat..");
+        Message("In combat ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0xA3, uintptr_t(InCombat_Hook));
 
-        Message("Guard pursuit..");
+        Message("Guard pursuit ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0xDE, uintptr_t(GuardsPursuing_Hook));
 
-        Message("Taking damage..");
+        Message("Taking damage ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x135, uintptr_t(TakingDamage_Hook));
 
-        Message("Over-encumbered..");
+        Message("Over-encumbered ..");
         g_branchTrampoline.Write5Call(ftFunc + 0x4A, uintptr_t(IsOverEncumbered_Hook));
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x108, uintptr_t(IsOverEncumbered_Hook));
 
-        Message("In air..");
+        Message("In air ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x185, uintptr_t(InAir_Hook));
     }
 
