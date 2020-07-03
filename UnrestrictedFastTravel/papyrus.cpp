@@ -55,8 +55,6 @@ namespace UFT
         case PFTOverrideCodes::kPFT_WorldspaceTravel:
             pft_state.worldspace_travel = v;
             break;
-        default:
-            return;
         }
     }
 

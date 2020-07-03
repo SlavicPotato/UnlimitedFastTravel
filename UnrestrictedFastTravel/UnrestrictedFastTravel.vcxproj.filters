@@ -68,5 +68,6 @@
     <None Include="..\Scripts\UnlimitedFastTravel.psc">
       <Filter>Scripts</Filter>
     </None>
+    <None Include="..\README.md" />
   </ItemGroup>
 </Project>

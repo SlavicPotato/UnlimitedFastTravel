@@ -37,6 +37,7 @@ namespace UFT
 
     static bool IsOverEncumbered_Hook(Actor* actor)
     {
+        // Actor check probably unnecessary, should always be player
         if (pft_state.over_encumbered &&
             actor == *g_thePlayer)
         {
@@ -73,14 +74,13 @@ namespace UFT
         return InCombat_O(p1, p2);
     }
 
-    static bool AllowLocationTravelHook()
+    static bool LocationTravel_Hook()
     {
         bool allow = pft_state.location;
 
         if (allow && !pft_state.worldspace_travel)
         {
-            auto player = *g_thePlayer;
-            auto worldspace = player->currentWorldSpace;
+            auto worldspace = (*g_thePlayer)->currentWorldSpace;
 
             if (worldspace != nullptr) {
                 return !(worldspace->flags & TESWorldSpace::kCantFastTravel);
@@ -162,7 +162,7 @@ namespace UFT
         {
             uintptr_t target = ftCheckFunc + 0x226;
 
-            FastTravelLocationInject code(target + 0x55, target + 0x4, uintptr_t(AllowLocationTravelHook));
+            FastTravelLocationInject code(target + 0x55, target + 0x4, uintptr_t(LocationTravel_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
             //safe_memset(target + 0x6, 0xCC, 3);
         }
