@@ -74,22 +74,13 @@ namespace SKSE
             return false;
         }
 
-        auto alignTo = Hook::GetAllocGranularity();
-        ASSERT(alignTo > 0);
-
-        auto r = MAX_TRAMPOLINE_BRANCH % alignTo;
-        size_t branchTrampolineSize = r ? MAX_TRAMPOLINE_BRANCH + (alignTo - r) : MAX_TRAMPOLINE_BRANCH;
-
-        if (!g_branchTrampoline.Create(branchTrampolineSize))
+        if (!g_branchTrampoline.Create(Hook::GetAlignedTrampolineSize(MAX_TRAMPOLINE_BRANCH)))
         {
             MsgFatalError("Could not create branch trampoline.");
             return false;
         }
 
-        r = MAX_TRAMPOLINE_CODEGEN % alignTo;
-        size_t localTrampolineSize = r ? MAX_TRAMPOLINE_CODEGEN + (alignTo - r) : MAX_TRAMPOLINE_CODEGEN;
-
-        if (!g_localTrampoline.Create(localTrampolineSize))
+        if (!g_localTrampoline.Create(Hook::GetAlignedTrampolineSize(MAX_TRAMPOLINE_CODEGEN)))
         {
             MsgFatalError("Could not create codegen trampoline.");
             return false;

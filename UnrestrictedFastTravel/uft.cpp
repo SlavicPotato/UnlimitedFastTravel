@@ -20,13 +20,13 @@ namespace UFT
     typedef bool(__cdecl* inAir_t)(PlayerCharacter*);
     static auto InAir_O = IAL::Addr<inAir_t>(36259);
 
-    static auto unkGlob1 = IAL::Addr<void**>(514167);
+    static auto procManager = IAL::Addr<void**>(514167);
 
-    typedef void(__cdecl* unkfunc1_t)(void*, Actor*, uint64_t);
-    typedef void(__cdecl* unkfunc2_t)(Actor*, uint8_t);
+    typedef void(__cdecl* pm_stopCombatAlarmOnActor_t)(void* This, Actor*, bool dontEndAlarm);
+    //typedef void(__cdecl* setAngryWithPlayer_t)(Actor*, bool);
 
-    static auto unkfunc1 = IAL::Addr<unkfunc1_t>(40330);
-    static auto unkfunc2 = IAL::Addr<unkfunc2_t>(36465);
+    static auto stopCombatAlarmOnActor = IAL::Addr<pm_stopCombatAlarmOnActor_t>(40330);
+    //static auto setAngryWithPlayer = IAL::Addr<setAngryWithPlayer_t>(36465);
 
     static auto ftCheckFunc = IAL::Addr<uintptr_t>(39372);
     static auto ftFunc = IAL::Addr<uintptr_t>(39373);
@@ -37,8 +37,6 @@ namespace UFT
 
     static bool IsOverEncumbered_Hook(Actor* actor)
     {
-        //Message(">> %d", (*g_thePlayer)->unkBD9 & PlayerCharacter::kFastTravelEnabled);
-
         // Actor check probably unnecessary, should always be player
         if (pft_state.over_encumbered &&
             actor == *g_thePlayer)
@@ -82,10 +80,14 @@ namespace UFT
 
         if (allow && !pft_state.worldspace_travel)
         {
-            auto worldspace = (*g_thePlayer)->currentWorldSpace;
+            auto player = *g_thePlayer;
 
-            if (worldspace != nullptr) {
-                return !(worldspace->flags & TESWorldSpace::kCantFastTravel);
+            if (player != nullptr) {
+                auto worldspace = player->currentWorldSpace;
+
+                if (worldspace != nullptr) {
+                    return (worldspace->flags & TESWorldSpace::kCantFastTravel) == 0;
+                }
             }
         }
 
@@ -181,8 +183,8 @@ namespace UFT
 
         Message("Script condition ..");
         {
-            struct ScriptFTInject : JITASM {
-                ScriptFTInject(uintptr_t retnAddr, uintptr_t callAddr)
+            struct ScriptConditionInject : JITASM {
+                ScriptConditionInject(uintptr_t retnAddr, uintptr_t callAddr)
                     : JITASM()
                 {
                     Xbyak::Label retnLabel;
@@ -206,7 +208,7 @@ namespace UFT
 
             uintptr_t target = ftCheckFunc + 0x158;
 
-            ScriptFTInject code(target + 0x7, uintptr_t(ScriptCond_Hook));
+            ScriptConditionInject code(target + 0x7, uintptr_t(ScriptCond_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
     }
@@ -253,11 +255,13 @@ namespace UFT
         if (pft_state.combat) {
             auto player = *g_thePlayer;
 
-            if (player->IsInCombat())
+            if (player != nullptr && player->IsInCombat())
             {
-                unkfunc1(*unkGlob1, player, 0);
-                player->Unk_CombatAlarm();
-                unkfunc2(player, 0);
+                if (*procManager != nullptr) {
+                    stopCombatAlarmOnActor(*procManager, player, false);
+                }
+                //player->StopCombat();
+                //setAngryWithPlayer(player, false);
             }
         }
 
