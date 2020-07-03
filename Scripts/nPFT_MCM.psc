@@ -8,14 +8,16 @@ Int Property kPFT_GuardsPursuing     = 3 AutoReadOnly
 Int Property kPFT_OverEncumbered     = 4 AutoReadOnly
 Int Property kPFT_InAir              = 5 AutoReadOnly
 Int Property kPFT_WorldspaceTravel   = 6 AutoReadOnly
+Int Property kPFT_ScriptCondition    = 7 AutoReadOnly
 
-bool Location_Enabled
-bool OverEncumbered_Enabled
-bool Combat_Enabled
-bool TakingDamage_Enabled
-bool Guards_Enabled
-bool InAir_Enabled
-bool WorldspaceTravel_Enabled
+bool Location_Enabled = true
+bool OverEncumbered_Enabled = true
+bool Combat_Enabled = true
+bool TakingDamage_Enabled = true
+bool Guards_Enabled = true
+bool InAir_Enabled = false
+bool WorldspaceTravel_Enabled = false
+bool ScriptCondition_Enabled = false
 
 int swOID_Location_Enabled
 int swOID_OverEncumbered_Enabled
@@ -24,6 +26,7 @@ int swOID_TakingDamage_Enabled
 int swOID_Guards_Enabled
 int swOID_InAir_Enabled
 int swOID_WorldspaceTravel_Enabled
+int swOID_ScriptCondition_Enabled
 
 string swDesc_Location = "From any location"
 string swDesc_OverEncumbered = "When over-encumbered"
@@ -32,6 +35,7 @@ string swDesc_TakingDamage = "While taking damage"
 string swDesc_Guards = "While pursued by guards"
 string swDesc_InAir = "While jumping or falling"
 string swDesc_WorldspaceTravel = "Allow worldspace fast travel"
+string swDesc_ScriptCondition = "Allow when disabled via scripts"
 
 bool pluginLoaded = false
 bool _initialized = false
@@ -65,6 +69,10 @@ function OnOptionSelect(int option)
 		WorldspaceTravel_Enabled = !WorldspaceTravel_Enabled
 		self.SetToggleOptionValue(option, WorldspaceTravel_Enabled, false)
 		UnlimitedFastTravel.SetOverride(self.kPFT_WorldspaceTravel, WorldspaceTravel_Enabled)
+	elseif option == swOID_ScriptCondition_Enabled
+		ScriptCondition_Enabled = !ScriptCondition_Enabled
+		self.SetToggleOptionValue(option, ScriptCondition_Enabled, false)
+		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
 	endif
 endfunction
 
@@ -82,6 +90,7 @@ function OnPageReset(string page)
 		swOID_Location_Enabled = self.AddToggleOption(swDesc_Location, Location_Enabled, 0)
 		swOID_OverEncumbered_Enabled = self.AddToggleOption(swDesc_OverEncumbered, OverEncumbered_Enabled, 0)
 		swOID_InAir_Enabled = self.AddToggleOption(swDesc_InAir, InAir_Enabled, 0)
+		swOID_ScriptCondition_Enabled = self.AddToggleOption(swDesc_ScriptCondition, ScriptCondition_Enabled, 0)
 		self.AddEmptyOption()
 		self.AddHeaderOption("Additional options", 0)
 		swOID_WorldspaceTravel_Enabled = self.AddToggleOption(swDesc_WorldspaceTravel, WorldspaceTravel_Enabled, 0)
@@ -102,6 +111,7 @@ function ProcessPluginOptions()
 		UnlimitedFastTravel.SetOverride(self.kPFT_OverEncumbered, OverEncumbered_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_InAir, InAir_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_WorldspaceTravel, WorldspaceTravel_Enabled)
+		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
 	else
 		_initialized = true
 		Combat_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Combat)
@@ -111,6 +121,7 @@ function ProcessPluginOptions()
 		OverEncumbered_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_OverEncumbered)
 		InAir_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_InAir)
 		WorldspaceTravel_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_WorldspaceTravel)
+		ScriptCondition_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_ScriptCondition)
 	endif
 endfunction
 
