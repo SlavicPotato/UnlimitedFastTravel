@@ -14,18 +14,18 @@ namespace UFT
     typedef bool(__cdecl* takingDamage_t)(MagicTarget*);
     static auto TakingDamage_O = IAL::Addr<takingDamage_t>(33736);
 
-    typedef bool(__cdecl* inCombat_t)(void*, uint64_t);
-    static auto InCombat_O = IAL::Addr<inCombat_t>(40388);
+    typedef bool(__cdecl* enemiesNear_t)(void* procManager, uint64_t);
+    static auto EnemiesNear_O = IAL::Addr<enemiesNear_t>(40388);
 
     typedef bool(__cdecl* inAir_t)(PlayerCharacter*);
     static auto InAir_O = IAL::Addr<inAir_t>(36259);
 
-    static auto procManager = IAL::Addr<void**>(514167);
+    static auto processManager = IAL::Addr<void**>(514167);
 
-    typedef void(__cdecl* pm_stopCombatAlarmOnActor_t)(void* This, Actor*, bool dontEndAlarm);
+    typedef void(__cdecl* stopCombatAlarmOnActor_t)(void* procManager, Actor*, bool dontEndAlarm);
     //typedef void(__cdecl* setAngryWithPlayer_t)(Actor*, bool);
 
-    static auto stopCombatAlarmOnActor = IAL::Addr<pm_stopCombatAlarmOnActor_t>(40330);
+    static auto StopCombatAlarmOnActor = IAL::Addr<stopCombatAlarmOnActor_t>(40330);
     //static auto setAngryWithPlayer = IAL::Addr<setAngryWithPlayer_t>(36465);
 
     static auto ftCheckFunc = IAL::Addr<uintptr_t>(39372);
@@ -65,13 +65,13 @@ namespace UFT
         return TakingDamage_O(p1);
     }
 
-    static bool InCombat_Hook(void *p1, uint64_t p2)
+    static bool InCombat_Hook(void* procManager, uint64_t p2)
     {
         if (pft_state.combat) {
             return false;
         }
 
-        return InCombat_O(p1, p2);
+        return EnemiesNear_O(procManager, p2);
     }
 
     static bool LocationTravel_Hook()
@@ -82,10 +82,10 @@ namespace UFT
         {
             auto player = *g_thePlayer;
 
-            if (player != nullptr) {
+            if (player) {
                 auto worldspace = player->currentWorldSpace;
 
-                if (worldspace != nullptr) {
+                if (worldspace) {
                     return (worldspace->flags & TESWorldSpace::kCantFastTravel) == 0;
                 }
             }
@@ -94,7 +94,7 @@ namespace UFT
         return allow;
     }
 
-    static bool InAir_Hook(PlayerCharacter*p1)
+    static bool InAir_Hook(PlayerCharacter* p1)
     {
         if (pft_state.in_air) {
             return false;
@@ -103,13 +103,22 @@ namespace UFT
         return InAir_O(p1);
     }
 
-    static bool ScriptCond_Hook(PlayerCharacter *player)
+    static bool ScriptCond_Hook(PlayerCharacter* player)
     {
         if (pft_state.script_cond) {
             return true;
         }
 
         return (player->unkBD9 & PlayerCharacter::kFastTravelEnabled) != 0;
+    }
+
+    static bool VampFeeding_Hook(PlayerCharacter* player)
+    {
+        if (pft_state.vamp_feed) {
+            return false;
+        }
+
+        return (player->unkBDA & PlayerCharacter::kVampireFeeding) != 0;
     }
 
     static void MessageHandler(SKSEMessagingInterface::Message* message)
@@ -130,6 +139,7 @@ namespace UFT
         pft_state.in_air = false;
         pft_state.worldspace_travel = false;
         pft_state.script_cond = false;
+        pft_state.vamp_feed = false;
     }
 
     static void ApplyPatches()
@@ -181,34 +191,39 @@ namespace UFT
             //safe_memset(target + 0x6, 0xCC, 3);
         }
 
-        Message("Script condition ..");
+        struct FlagConditionInject : JITASM {
+            FlagConditionInject(uintptr_t retnAddr, uintptr_t callAddr)
+                : JITASM()
+            {
+                Xbyak::Label retnLabel;
+                Xbyak::Label callLabel;
+
+                mov(rcx, rsi);
+                call(ptr[rip + callLabel]);
+                test(al, al);
+                jmp(ptr[rip + retnLabel]);
+
+                L(retnLabel);
+                dq(retnAddr + 0x7);
+
+                L(callLabel);
+                dq(callAddr);
+            }
+        };
+
+        Message("Script/console ..");
         {
-            struct ScriptConditionInject : JITASM {
-                ScriptConditionInject(uintptr_t retnAddr, uintptr_t callAddr)
-                    : JITASM()
-                {
-                    Xbyak::Label retnLabel;
-                    Xbyak::Label callLabel;
-
-                    Xbyak::Label blockTravel;
-                    Xbyak::Label blockTravelNoMsg;
-
-                    mov(rcx, rsi);
-                    call(ptr[rip + callLabel]);
-                    test(al, al);
-                    jmp(ptr[rip + retnLabel]);
-
-                    L(retnLabel);
-                    dq(retnAddr);
-
-                    L(callLabel);
-                    dq(callAddr);
-                }
-            };
-
             uintptr_t target = ftCheckFunc + 0x158;
 
-            ScriptConditionInject code(target + 0x7, uintptr_t(ScriptCond_Hook));
+            FlagConditionInject code(target, uintptr_t(ScriptCond_Hook));
+            g_branchTrampoline.Write6Branch(target, code.get());
+        }
+
+        Message("Vampire feed ..");
+        {
+            uintptr_t target = ftCheckFunc + 0x244;
+
+            FlagConditionInject code(target, uintptr_t(VampFeeding_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
     }
@@ -255,18 +270,18 @@ namespace UFT
         if (pft_state.combat) {
             auto player = *g_thePlayer;
 
-            if (player != nullptr && player->IsInCombat())
-            {
-                if (*procManager != nullptr) {
-                    stopCombatAlarmOnActor(*procManager, player, false);
+            if (player && player->IsInCombat()) {
+                auto pm = *processManager;
+                if (pm) {
+                    StopCombatAlarmOnActor(pm, player, false);
                 }
+
+                // this is what the papyrus func does, even for player
                 //player->StopCombat();
                 //setAngryWithPlayer(player, false);
             }
         }
 
         return kEvent_Continue;
-    };
-
-
+    }
 }

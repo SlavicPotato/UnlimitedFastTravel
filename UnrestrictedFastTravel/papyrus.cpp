@@ -21,6 +21,8 @@ namespace UFT
             return pft_state.worldspace_travel;
         case PFTOverrideCodes::kPFT_ScriptCondition:
             return pft_state.script_cond;
+        case PFTOverrideCodes::kPFT_VampireFeeding:
+            return pft_state.vamp_feed;
         }
         return false;
     }
@@ -60,6 +62,9 @@ namespace UFT
             break;
         case PFTOverrideCodes::kPFT_ScriptCondition:
             pft_state.script_cond = v;
+            break;
+        case PFTOverrideCodes::kPFT_VampireFeeding:
+            pft_state.vamp_feed = v;
             break;
         }
     }
