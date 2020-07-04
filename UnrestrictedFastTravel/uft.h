@@ -20,6 +20,7 @@ namespace UFT
         std::atomic<bool> script_cond;
         std::atomic<bool> vamp_feed;
         std::atomic<bool> unk01;
+        std::atomic<bool> dragon;
     };
 
     extern PFTState pft_state;

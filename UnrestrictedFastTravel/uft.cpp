@@ -127,6 +127,11 @@ namespace UFT
     {
         return pft_state.unk01;
     }
+    
+    static bool DragonCond_Hook()
+    {
+        return pft_state.dragon;
+    }
 
     static void MessageHandler(SKSEMessagingInterface::Message* message)
     {
@@ -148,6 +153,7 @@ namespace UFT
         pft_state.script_cond = false;
         pft_state.vamp_feed = false;
         pft_state.unk01 = false;
+        pft_state.dragon = true;
     }
 
     static void ApplyPatches()
@@ -245,15 +251,15 @@ namespace UFT
                     Xbyak::Label callLabel;
                     Xbyak::Label unkGlob01Label;
 
-                    Xbyak::Label gotoSkip;
+                    Xbyak::Label skipLabel;
 
                     call(ptr[rip + callLabel]);
                     test(al, al);
-                    jne(gotoSkip);
+                    jne(skipLabel);
                     mov(rbx, ptr[rip + unkGlob01Label]);
                     mov(rbx, ptr[rbx]);
                     jmp(ptr[rip + retnCont]);
-                    L(gotoSkip);
+                    L(skipLabel);
                     jmp(ptr[rip + retnSkip]);
 
                     L(retnCont);
@@ -273,6 +279,47 @@ namespace UFT
             uintptr_t target = ftCheckFunc + 0x1D0;
 
             Unk01Inject code(target, uintptr_t(Unk01Cond_Hook));
+            g_branchTrampoline.Write6Branch(target, code.get());
+        }
+
+        Message("Dragon ..");
+        {
+            struct DragonConditionInject : JITASM {
+                DragonConditionInject(uintptr_t targetAddr, uintptr_t callAddr)
+                    : JITASM()
+                {
+                    Xbyak::Label retnCont;
+                    Xbyak::Label retnSkip;
+                    Xbyak::Label callLabel;
+
+                    Xbyak::Label skipLabel;
+
+                    call(ptr[rip + callLabel]);
+                    test(al, al);
+                    jne(skipLabel);
+
+                    // mov rcx, qword ss:[rsp+0x68] (mountedActor)
+                    // test rcx, rcx
+                    db(reinterpret_cast<Xbyak::uint8*>(targetAddr), 0x8); 
+                    jmp(ptr[rip + retnCont]);
+
+                    L(skipLabel);
+                    jmp(ptr[rip + retnSkip]);
+
+                    L(retnCont);
+                    dq(targetAddr + 0x8);
+
+                    L(retnSkip);
+                    dq(targetAddr + 0xDE);
+
+                    L(callLabel);
+                    dq(callAddr);
+                }
+            };
+
+            uintptr_t target = ftCheckFunc + 0x50;
+
+            DragonConditionInject code(target, uintptr_t(DragonCond_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
     }
