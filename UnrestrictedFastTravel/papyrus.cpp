@@ -23,6 +23,8 @@ namespace UFT
             return pft_state.script_cond;
         case PFTOverrideCodes::kPFT_VampireFeeding:
             return pft_state.vamp_feed;
+        case PFTOverrideCodes::kPFT_Unk01:
+            return pft_state.unk01;
         }
         return false;
     }
@@ -65,6 +67,9 @@ namespace UFT
             break;
         case PFTOverrideCodes::kPFT_VampireFeeding:
             pft_state.vamp_feed = v;
+            break;
+        case PFTOverrideCodes::kPFT_Unk01:
+            pft_state.unk01 = v;
             break;
         }
     }

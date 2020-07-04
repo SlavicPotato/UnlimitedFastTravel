@@ -31,6 +31,8 @@ namespace UFT
     static auto ftCheckFunc = IAL::Addr<uintptr_t>(39372);
     static auto ftFunc = IAL::Addr<uintptr_t>(39373);
 
+    static auto unkGlob01 = IAL::Addr<void**>(514960);
+
     static FastTravelEventHandler g_fastTravelEventHandler;
 
     PFTState pft_state;
@@ -121,6 +123,11 @@ namespace UFT
         return (player->unkBDA & PlayerCharacter::kVampireFeeding) != 0;
     }
 
+    static bool Unk01Cond_Hook()
+    {
+        return pft_state.unk01;
+    }
+
     static void MessageHandler(SKSEMessagingInterface::Message* message)
     {
         if (message->type == SKSEMessagingInterface::kMessage_DataLoaded) {
@@ -140,6 +147,7 @@ namespace UFT
         pft_state.worldspace_travel = false;
         pft_state.script_cond = false;
         pft_state.vamp_feed = false;
+        pft_state.unk01 = false;
     }
 
     static void ApplyPatches()
@@ -188,11 +196,10 @@ namespace UFT
 
             FastTravelLocationInject code(target + 0x55, target + 0x4, uintptr_t(LocationTravel_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
-            //safe_memset(target + 0x6, 0xCC, 3);
         }
 
         struct FlagConditionInject : JITASM {
-            FlagConditionInject(uintptr_t retnAddr, uintptr_t callAddr)
+            FlagConditionInject(uintptr_t targetAddr, uintptr_t callAddr)
                 : JITASM()
             {
                 Xbyak::Label retnLabel;
@@ -204,7 +211,7 @@ namespace UFT
                 jmp(ptr[rip + retnLabel]);
 
                 L(retnLabel);
-                dq(retnAddr + 0x7);
+                dq(targetAddr + 0x7);
 
                 L(callLabel);
                 dq(callAddr);
@@ -224,6 +231,48 @@ namespace UFT
             uintptr_t target = ftCheckFunc + 0x244;
 
             FlagConditionInject code(target, uintptr_t(VampFeeding_Hook));
+            g_branchTrampoline.Write6Branch(target, code.get());
+        }
+
+        Message("Unk01 ..");
+        {
+            struct Unk01Inject : JITASM {
+                Unk01Inject(uintptr_t targetAddr, uintptr_t callAddr)
+                    : JITASM()
+                {
+                    Xbyak::Label retnCont;
+                    Xbyak::Label retnSkip;
+                    Xbyak::Label callLabel;
+                    Xbyak::Label unkGlob01Label;
+
+                    Xbyak::Label gotoSkip;
+
+                    call(ptr[rip + callLabel]);
+                    test(al, al);
+                    jne(gotoSkip);
+                    mov(rbx, ptr[rip + unkGlob01Label]);
+                    mov(rbx, ptr[rbx]);
+                    jmp(ptr[rip + retnCont]);
+                    L(gotoSkip);
+                    jmp(ptr[rip + retnSkip]);
+
+                    L(retnCont);
+                    dq(targetAddr + 0x7);
+
+                    L(retnSkip);
+                    dq(targetAddr + 0x23);
+
+                    L(callLabel);
+                    dq(callAddr);
+
+                    L(unkGlob01Label);
+                    dq(uintptr_t(unkGlob01));
+                }
+            };
+
+            uintptr_t target = ftCheckFunc + 0x1D0;
+
+            Unk01Inject code(target, uintptr_t(Unk01Cond_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
     }

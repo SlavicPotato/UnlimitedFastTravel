@@ -13,7 +13,8 @@ namespace UFT
         kPFT_InAir,
         kPFT_WorldspaceTravel,
         kPFT_ScriptCondition,
-        kPFT_VampireFeeding
+        kPFT_VampireFeeding,
+        kPFT_Unk01
     };
 
     extern bool RegisterFunctions(VMClassRegistry* registry);
