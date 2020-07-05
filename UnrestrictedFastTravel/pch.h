@@ -19,6 +19,9 @@
 #include "skse64/PapyrusNativeFunctions.h"
 #include "skse64/PapyrusArgs.h"
 
+#define _UFT_ENABLE_MOSTLY_USELESS
+#define _UFT_ENABLE_UNKNOWN
+
 #include "plugin.h"
 #include "skse.h"
 #include "papyrus.h"

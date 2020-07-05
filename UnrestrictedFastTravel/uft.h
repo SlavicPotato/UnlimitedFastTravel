@@ -18,9 +18,13 @@ namespace UFT
         std::atomic<bool> in_air;
         std::atomic<bool> worldspace_travel;
         std::atomic<bool> script_cond;
-        std::atomic<bool> vamp_feed;
-        std::atomic<bool> unk01;
         std::atomic<bool> dragon;
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
+        std::atomic<bool> vamp_feed;
+#endif
+#ifdef _UFT_ENABLE_UNKNOWN
+        std::atomic<bool> unk01;
+#endif
     };
 
     extern PFTState pft_state;

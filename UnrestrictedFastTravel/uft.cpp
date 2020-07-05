@@ -1,4 +1,6 @@
 #include "pch.h"
+#include "skse64/GameMenus.h"
+#include "skse64/PapyrusEvents.h"
 
 namespace UFT
 {
@@ -28,8 +30,12 @@ namespace UFT
     static auto StopCombatAlarmOnActor = IAL::Addr<stopCombatAlarmOnActor_t>(40330);
     //static auto setAngryWithPlayer = IAL::Addr<setAngryWithPlayer_t>(36465);
 
+    typedef bool(__cdecl* mmIsOnFlyingMount_t)(PlayerCharacter*);
+    static auto mmIsOnFlyingMount_O = IAL::Addr<mmIsOnFlyingMount_t>(36877);
+
     static auto ftCheckFunc = IAL::Addr<uintptr_t>(39372);
     static auto ftFunc = IAL::Addr<uintptr_t>(39373);
+    static auto mmarkerCreateFunc = IAL::Addr<uintptr_t>(52224);
 
     static auto unkGlob01 = IAL::Addr<void**>(514960);
 
@@ -67,7 +73,7 @@ namespace UFT
         return TakingDamage_O(p1);
     }
 
-    static bool InCombat_Hook(void* procManager, uint64_t p2)
+    static bool EnemiesNear_Hook(void* procManager, uint64_t p2)
     {
         if (pft_state.combat) {
             return false;
@@ -114,6 +120,7 @@ namespace UFT
         return (player->unkBD9 & PlayerCharacter::kFastTravelEnabled) != 0;
     }
 
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
     static bool VampFeeding_Hook(PlayerCharacter* player)
     {
         if (pft_state.vamp_feed) {
@@ -122,15 +129,27 @@ namespace UFT
 
         return (player->unkBDA & PlayerCharacter::kVampireFeeding) != 0;
     }
+#endif
 
+#ifdef _UFT_ENABLE_UNKNOWN
     static bool Unk01Cond_Hook()
     {
         return pft_state.unk01;
     }
-    
+#endif
+
     static bool DragonCond_Hook()
     {
         return pft_state.dragon;
+    }
+
+    static bool DragonCondMM_Hook(PlayerCharacter* player)
+    {
+        if (pft_state.dragon) {
+            return false;
+        }
+
+        return mmIsOnFlyingMount_O(player);
     }
 
     static void MessageHandler(SKSEMessagingInterface::Message* message)
@@ -151,9 +170,13 @@ namespace UFT
         pft_state.in_air = false;
         pft_state.worldspace_travel = false;
         pft_state.script_cond = false;
+        pft_state.dragon = false;
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
         pft_state.vamp_feed = false;
+#endif
+#ifdef _UFT_ENABLE_UNKNOWN
         pft_state.unk01 = false;
-        pft_state.dragon = true;
+#endif
     }
 
     static void ApplyPatches()
@@ -232,6 +255,48 @@ namespace UFT
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 
+        Message("Dragon ..");
+        {
+            struct DragonConditionInject : JITASM {
+                DragonConditionInject(uintptr_t targetAddr, uintptr_t callAddr)
+                    : JITASM()
+                {
+                    Xbyak::Label retnCont;
+                    Xbyak::Label retnSkip;
+                    Xbyak::Label callLabel;
+
+                    Xbyak::Label skipLabel;
+
+                    call(ptr[rip + callLabel]);
+                    test(al, al);
+                    jne(skipLabel);
+
+                    // mov rcx, qword ss:[rsp+0x68] (mountedActor)
+                    // test rcx, rcx
+                    db(reinterpret_cast<Xbyak::uint8*>(targetAddr), 0x8);
+                    jmp(ptr[rip + retnCont]);
+
+                    L(skipLabel);
+                    jmp(ptr[rip + retnSkip]);
+
+                    L(retnCont);
+                    dq(targetAddr + 0x8);
+
+                    L(retnSkip);
+                    dq(targetAddr + 0xDE);
+
+                    L(callLabel);
+                    dq(callAddr);
+                }
+            };
+
+            uintptr_t target = ftCheckFunc + 0x50;
+
+            DragonConditionInject code(target, uintptr_t(DragonCond_Hook));
+            g_branchTrampoline.Write6Branch(target, code.get());
+        }
+
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
         Message("Vampire feed ..");
         {
             uintptr_t target = ftCheckFunc + 0x244;
@@ -239,7 +304,9 @@ namespace UFT
             FlagConditionInject code(target, uintptr_t(VampFeeding_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
+#endif
 
+#ifdef _UFT_ENABLE_UNKNOWN
         Message("Unk01 ..");
         {
             struct Unk01Inject : JITASM {
@@ -281,53 +348,14 @@ namespace UFT
             Unk01Inject code(target, uintptr_t(Unk01Cond_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
-
-        Message("Dragon ..");
-        {
-            struct DragonConditionInject : JITASM {
-                DragonConditionInject(uintptr_t targetAddr, uintptr_t callAddr)
-                    : JITASM()
-                {
-                    Xbyak::Label retnCont;
-                    Xbyak::Label retnSkip;
-                    Xbyak::Label callLabel;
-
-                    Xbyak::Label skipLabel;
-
-                    call(ptr[rip + callLabel]);
-                    test(al, al);
-                    jne(skipLabel);
-
-                    // mov rcx, qword ss:[rsp+0x68] (mountedActor)
-                    // test rcx, rcx
-                    db(reinterpret_cast<Xbyak::uint8*>(targetAddr), 0x8); 
-                    jmp(ptr[rip + retnCont]);
-
-                    L(skipLabel);
-                    jmp(ptr[rip + retnSkip]);
-
-                    L(retnCont);
-                    dq(targetAddr + 0x8);
-
-                    L(retnSkip);
-                    dq(targetAddr + 0xDE);
-
-                    L(callLabel);
-                    dq(callAddr);
-                }
-            };
-
-            uintptr_t target = ftCheckFunc + 0x50;
-
-            DragonConditionInject code(target, uintptr_t(DragonCond_Hook));
-            g_branchTrampoline.Write6Branch(target, code.get());
-        }
+#endif
     }
+
 
     static void InstallHooks()
     {
         Message("In combat ..");
-        g_branchTrampoline.Write5Call(ftCheckFunc + 0xA3, uintptr_t(InCombat_Hook));
+        g_branchTrampoline.Write5Call(ftCheckFunc + 0xA3, uintptr_t(EnemiesNear_Hook));
 
         Message("Guard pursuit ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0xDE, uintptr_t(GuardsPursuing_Hook));
@@ -341,6 +369,10 @@ namespace UFT
 
         Message("In air ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x185, uintptr_t(InAir_Hook));
+
+        Message("Dragon (map markers) ..");
+        g_branchTrampoline.Write5Call(mmarkerCreateFunc + 0xF0, uintptr_t(DragonCondMM_Hook));
+
     }
 
     void Initialize()

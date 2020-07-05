@@ -9,6 +9,9 @@ Int Property kPFT_OverEncumbered     = 4 AutoReadOnly
 Int Property kPFT_InAir              = 5 AutoReadOnly
 Int Property kPFT_WorldspaceTravel   = 6 AutoReadOnly
 Int Property kPFT_ScriptCondition    = 7 AutoReadOnly
+Int Property kPFT_VampireFeeding     = 8 AutoReadOnly
+Int Property kPFT_Unk01              = 9 AutoReadOnly
+Int Property kPFT_Dragon             = 10 AutoReadOnly
 
 bool Location_Enabled = true
 bool OverEncumbered_Enabled = true
@@ -18,6 +21,7 @@ bool Guards_Enabled = true
 bool InAir_Enabled = false
 bool WorldspaceTravel_Enabled = false
 bool ScriptCondition_Enabled = false
+bool Dragon_Enabled = false
 
 int swOID_Location_Enabled
 int swOID_OverEncumbered_Enabled
@@ -27,6 +31,7 @@ int swOID_Guards_Enabled
 int swOID_InAir_Enabled
 int swOID_WorldspaceTravel_Enabled
 int swOID_ScriptCondition_Enabled
+int swOID_Dragon_Enabled
 
 string swDesc_Location = "From any location"
 string swDesc_OverEncumbered = "When over-encumbered"
@@ -35,7 +40,8 @@ string swDesc_TakingDamage = "While taking damage"
 string swDesc_Guards = "While pursued by guards"
 string swDesc_InAir = "While jumping or falling"
 string swDesc_WorldspaceTravel = "Allow worldspace fast travel"
-string swDesc_ScriptCondition = "Allow when disabled via scripts"
+string swDesc_ScriptCondition = "When disabled via scripts/console"
+string swDesc_Dragon = "Remove dragon riding restrictions (caution)"
 
 bool pluginLoaded = false
 bool _initialized = false
@@ -73,6 +79,10 @@ function OnOptionSelect(int option)
 		ScriptCondition_Enabled = !ScriptCondition_Enabled
 		self.SetToggleOptionValue(option, ScriptCondition_Enabled, false)
 		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
+	elseif option == swOID_Dragon_Enabled
+		Dragon_Enabled = !Dragon_Enabled
+		self.SetToggleOptionValue(option, Dragon_Enabled, false)
+		UnlimitedFastTravel.SetOverride(self.kPFT_Dragon, Dragon_Enabled)
 	endif
 endfunction
 
@@ -94,6 +104,7 @@ function OnPageReset(string page)
 		self.AddEmptyOption()
 		self.AddHeaderOption("Additional options", 0)
 		swOID_WorldspaceTravel_Enabled = self.AddToggleOption(swDesc_WorldspaceTravel, WorldspaceTravel_Enabled, 0)
+		swOID_Dragon_Enabled = self.AddToggleOption(swDesc_Dragon, Dragon_Enabled, 0)
 		;self.AddEmptyOption()
 	endif	
 endfunction
@@ -112,6 +123,7 @@ function ProcessPluginOptions()
 		UnlimitedFastTravel.SetOverride(self.kPFT_InAir, InAir_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_WorldspaceTravel, WorldspaceTravel_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
+		UnlimitedFastTravel.SetOverride(self.kPFT_Dragon, Dragon_Enabled)
 	else
 		_initialized = true
 		Combat_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Combat)
@@ -122,6 +134,7 @@ function ProcessPluginOptions()
 		InAir_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_InAir)
 		WorldspaceTravel_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_WorldspaceTravel)
 		ScriptCondition_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_ScriptCondition)
+		Dragon_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Dragon)
 	endif
 endfunction
 

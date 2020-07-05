@@ -21,12 +21,16 @@ namespace UFT
             return pft_state.worldspace_travel;
         case PFTOverrideCodes::kPFT_ScriptCondition:
             return pft_state.script_cond;
-        case PFTOverrideCodes::kPFT_VampireFeeding:
-            return pft_state.vamp_feed;
-        case PFTOverrideCodes::kPFT_Unk01:
-            return pft_state.unk01;
         case PFTOverrideCodes::kPFT_Dragon:
             return pft_state.dragon;
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
+        case PFTOverrideCodes::kPFT_VampireFeeding:
+            return pft_state.vamp_feed;
+#endif
+#ifdef _UFT_ENABLE_UNKNOWN
+        case PFTOverrideCodes::kPFT_Unk01:
+            return pft_state.unk01;
+#endif
         }
         return false;
     }
@@ -67,15 +71,19 @@ namespace UFT
         case PFTOverrideCodes::kPFT_ScriptCondition:
             pft_state.script_cond = v;
             break;
-        case PFTOverrideCodes::kPFT_VampireFeeding:
-            pft_state.vamp_feed = v;
-            break;
-        case PFTOverrideCodes::kPFT_Unk01:
-            pft_state.unk01 = v;
-            break;
         case PFTOverrideCodes::kPFT_Dragon:
             pft_state.dragon = v;
             break;
+#ifdef _UFT_ENABLE_MOSTLY_USELESS
+        case PFTOverrideCodes::kPFT_VampireFeeding:
+            pft_state.vamp_feed = v;
+            break;
+#endif
+#ifdef _UFT_ENABLE_UNKNOWN
+        case PFTOverrideCodes::kPFT_Unk01:
+            pft_state.unk01 = v;
+            break;
+#endif
         }
     }
 
