@@ -1,6 +1,4 @@
 #include "pch.h"
-#include "skse64/GameMenus.h"
-#include "skse64/PapyrusEvents.h"
 
 namespace UFT
 {

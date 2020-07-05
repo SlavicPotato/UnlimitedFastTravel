@@ -8,7 +8,6 @@
 #define PLUGIN_BASE_PATH            "Data\\SKSE\\Plugins"
 
 constexpr char* PLUGIN_LOG_PATH = "\\My Games\\Skyrim Special Edition\\SKSE\\" PLUGIN_NAME ".log";
-constexpr char* PLUGIN_CBP_CONFIG = PLUGIN_BASE_PATH "\\CBPConfig.txt";
 
 #define MIN_SKSE_VERSION            RUNTIME_VERSION_1_5_39
 
