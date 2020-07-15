@@ -5,30 +5,28 @@ namespace UFT
     using namespace JITASM;
     using namespace Patching;
 
-    typedef bool(__cdecl* isOverEncumbered_t)(Actor*);
+    typedef bool(*isOverEncumbered_t)(Actor*);
     static auto IsOverEncumbered_O = IAL::Addr<isOverEncumbered_t>(36457);
 
-    typedef bool(__cdecl* guardsPursuing_t)(void*, Actor*, int32_t, int8_t);
+    typedef bool(*guardsPursuing_t)(void*, Actor*, int32_t, int8_t);
     static auto GuardsPursuing_O = IAL::Addr<guardsPursuing_t>(40314);
 
-    typedef bool(__cdecl* takingDamage_t)(MagicTarget*);
+    typedef bool(*takingDamage_t)(MagicTarget*);
     static auto TakingDamage_O = IAL::Addr<takingDamage_t>(33736);
 
-    typedef bool(__cdecl* enemiesNear_t)(void* procManager, uint64_t);
+    typedef bool(*enemiesNear_t)(void* procManager, uint64_t);
     static auto EnemiesNear_O = IAL::Addr<enemiesNear_t>(40388);
 
-    typedef bool(__cdecl* inAir_t)(PlayerCharacter*);
+    typedef bool(*inAir_t)(PlayerCharacter*);
     static auto InAir_O = IAL::Addr<inAir_t>(36259);
 
     static auto processManager = IAL::Addr<void**>(514167);
 
-    typedef void(__cdecl* stopCombatAlarmOnActor_t)(void* procManager, Actor*, bool dontEndAlarm);
-    //typedef void(__cdecl* setAngryWithPlayer_t)(Actor*, bool);
+    typedef void(*stopCombatAlarmOnActor_t)(void* procManager, Actor*, bool dontEndAlarm);
 
     static auto StopCombatAlarmOnActor = IAL::Addr<stopCombatAlarmOnActor_t>(40330);
-    //static auto setAngryWithPlayer = IAL::Addr<setAngryWithPlayer_t>(36465);
 
-    typedef bool(__cdecl* mmIsOnFlyingMount_t)(PlayerCharacter*);
+    typedef bool(*mmIsOnFlyingMount_t)(PlayerCharacter*);
     static auto mmIsOnFlyingMount_O = IAL::Addr<mmIsOnFlyingMount_t>(36877);
 
     static auto ftCheckFunc = IAL::Addr<uintptr_t>(39372);
@@ -118,16 +116,14 @@ namespace UFT
         return (player->unkBD9 & PlayerCharacter::kFastTravelEnabled) != 0;
     }
 
-#ifdef _UFT_ENABLE_MOSTLY_USELESS
-    static bool VampFeeding_Hook(PlayerCharacter* player)
+    static bool UIDriven_Hook(PlayerCharacter* player)
     {
         if (pft_state.vamp_feed) {
             return false;
         }
 
-        return (player->unkBDA & PlayerCharacter::kVampireFeeding) != 0;
+        return (player->unkBDA & PlayerCharacter::kUIDriven) != 0;
     }
-#endif
 
 #ifdef _UFT_ENABLE_UNKNOWN
     static bool Unk01Cond_Hook()
@@ -294,15 +290,13 @@ namespace UFT
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 
-#ifdef _UFT_ENABLE_MOSTLY_USELESS
-        Message("Vampire feed ..");
+        Message("UI Driven ..");
         {
             uintptr_t target = ftCheckFunc + 0x244;
 
-            FlagConditionInject code(target, uintptr_t(VampFeeding_Hook));
+            FlagConditionInject code(target, uintptr_t(UIDriven_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
-#endif
 
 #ifdef _UFT_ENABLE_UNKNOWN
         Message("Unk01 ..");
@@ -401,10 +395,6 @@ namespace UFT
                 if (pm) {
                     StopCombatAlarmOnActor(pm, player, false);
                 }
-
-                // this is what the papyrus func does, even for player
-                //player->StopCombat();
-                //setAngryWithPlayer(player, false);
             }
         }
 

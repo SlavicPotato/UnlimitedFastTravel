@@ -5,9 +5,6 @@
 
 #include <atomic>
 
-#include "skse64_common/skse_version.h"
-#include "skse64_common/BranchTrampoline.h"
-
 #include "ext/ICommon.h"
 #include "ext/IHook.h"
 #include "ext/JITASM.h"

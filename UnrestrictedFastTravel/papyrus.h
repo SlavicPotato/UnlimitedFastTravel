@@ -13,9 +13,7 @@ namespace UFT
         kPFT_InAir = 5,
         kPFT_WorldspaceTravel = 6,
         kPFT_ScriptCondition = 7,
-#ifdef _UFT_ENABLE_MOSTLY_USELESS
-        kPFT_VampireFeeding = 8,
-#endif
+        kPFT_UIDriven = 8,
 #ifdef _UFT_ENABLE_UNKNOWN
         kPFT_Unk01 = 9,
 #endif

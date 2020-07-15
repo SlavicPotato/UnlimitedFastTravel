@@ -27,7 +27,6 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{023bd619-cc32-4fb2-9285-a6918d8b7769}</ProjectGuid>
     <RootNamespace>UnlimitedFastTravel</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>UnlimitedFastTravel</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
