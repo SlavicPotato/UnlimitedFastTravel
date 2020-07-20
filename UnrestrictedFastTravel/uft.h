@@ -20,7 +20,7 @@ namespace UFT
         std::atomic<bool> script_cond;
         std::atomic<bool> dragon;
 #ifdef _UFT_ENABLE_MOSTLY_USELESS
-        std::atomic<bool> vamp_feed;
+        std::atomic<bool> ai_driven;
 #endif
 #ifdef _UFT_ENABLE_UNKNOWN
         std::atomic<bool> unk01;

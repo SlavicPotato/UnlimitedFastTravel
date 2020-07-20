@@ -116,13 +116,13 @@ namespace UFT
         return (player->unkBD9 & PlayerCharacter::kFastTravelEnabled) != 0;
     }
 
-    static bool UIDriven_Hook(PlayerCharacter* player)
+    static bool AIDriven_Hook(PlayerCharacter* player)
     {
-        if (pft_state.vamp_feed) {
+        if (pft_state.ai_driven) {
             return false;
         }
 
-        return (player->unkBDA & PlayerCharacter::kUIDriven) != 0;
+        return (player->unkBDA & PlayerCharacter::kAIDriven) != 0;
     }
 
 #ifdef _UFT_ENABLE_UNKNOWN
@@ -166,7 +166,7 @@ namespace UFT
         pft_state.script_cond = false;
         pft_state.dragon = false;
 #ifdef _UFT_ENABLE_MOSTLY_USELESS
-        pft_state.vamp_feed = false;
+        pft_state.ai_driven = false;
 #endif
 #ifdef _UFT_ENABLE_UNKNOWN
         pft_state.unk01 = false;
@@ -290,11 +290,11 @@ namespace UFT
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 
-        Message("UI Driven ..");
+        Message("AI Driven ..");
         {
             uintptr_t target = ftCheckFunc + 0x244;
 
-            FlagConditionInject code(target, uintptr_t(UIDriven_Hook));
+            FlagConditionInject code(target, uintptr_t(AIDriven_Hook));
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 

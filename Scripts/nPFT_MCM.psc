@@ -9,7 +9,7 @@ Int Property kPFT_OverEncumbered     = 4 AutoReadOnly
 Int Property kPFT_InAir              = 5 AutoReadOnly
 Int Property kPFT_WorldspaceTravel   = 6 AutoReadOnly
 Int Property kPFT_ScriptCondition    = 7 AutoReadOnly
-Int Property kPFT_UIDriven           = 8 AutoReadOnly
+Int Property kPFT_AIDriven           = 8 AutoReadOnly
 Int Property kPFT_Unk01              = 9 AutoReadOnly
 Int Property kPFT_Dragon             = 10 AutoReadOnly
 
@@ -89,7 +89,7 @@ function OnOptionSelect(int option)
 	elseif option == swOID_UIDriven_Enabled
 		UIDriven_Enabled = !UIDriven_Enabled
 		self.SetToggleOptionValue(option, UIDriven_Enabled, false)
-		UnlimitedFastTravel.SetOverride(self.kPFT_UIDriven, UIDriven_Enabled)
+		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, UIDriven_Enabled)
 	endif
 endfunction
 
@@ -133,7 +133,7 @@ function ProcessPluginOptions()
 		UnlimitedFastTravel.SetOverride(self.kPFT_WorldspaceTravel, WorldspaceTravel_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_Dragon, Dragon_Enabled)
-		UnlimitedFastTravel.SetOverride(self.kPFT_UIDriven, UIDriven_Enabled)
+		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, UIDriven_Enabled)
 	else
 		_initialized = true
 		Combat_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Combat)
@@ -145,7 +145,7 @@ function ProcessPluginOptions()
 		WorldspaceTravel_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_WorldspaceTravel)
 		ScriptCondition_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_ScriptCondition)
 		Dragon_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Dragon)
-		UIDriven_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_UIDriven)
+		UIDriven_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_AIDriven)
 	endif
 endfunction
 

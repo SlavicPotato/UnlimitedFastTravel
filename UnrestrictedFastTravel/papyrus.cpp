@@ -24,8 +24,8 @@ namespace UFT
         case PFTOverrideCodes::kPFT_Dragon:
             return pft_state.dragon;
 #ifdef _UFT_ENABLE_MOSTLY_USELESS
-        case PFTOverrideCodes::kPFT_UIDriven:
-            return pft_state.vamp_feed;
+        case PFTOverrideCodes::kPFT_AIDriven:
+            return pft_state.ai_driven;
 #endif
 #ifdef _UFT_ENABLE_UNKNOWN
         case PFTOverrideCodes::kPFT_Unk01:
@@ -74,8 +74,8 @@ namespace UFT
         case PFTOverrideCodes::kPFT_Dragon:
             pft_state.dragon = v;
             break;
-        case PFTOverrideCodes::kPFT_UIDriven:
-            pft_state.vamp_feed = v;
+        case PFTOverrideCodes::kPFT_AIDriven:
+            pft_state.ai_driven = v;
             break;
 #ifdef _UFT_ENABLE_UNKNOWN
         case PFTOverrideCodes::kPFT_Unk01:
