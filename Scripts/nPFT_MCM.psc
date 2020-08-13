@@ -22,7 +22,7 @@ bool InAir_Enabled = false
 bool WorldspaceTravel_Enabled = false
 bool ScriptCondition_Enabled = false
 bool Dragon_Enabled = false
-bool UIDriven_Enabled = false
+bool AIDriven_Enabled = false
 
 int swOID_Location_Enabled
 int swOID_OverEncumbered_Enabled
@@ -33,7 +33,7 @@ int swOID_InAir_Enabled
 int swOID_WorldspaceTravel_Enabled
 int swOID_ScriptCondition_Enabled
 int swOID_Dragon_Enabled
-int swOID_UIDriven_Enabled
+int swOID_AIDriven_Enabled
 
 string swDesc_Location = "From any location"
 string swDesc_OverEncumbered = "When over-encumbered"
@@ -44,7 +44,7 @@ string swDesc_InAir = "While jumping or falling"
 string swDesc_WorldspaceTravel = "Allow worldspace fast travel"
 string swDesc_ScriptCondition = "When disabled via scripts/console"
 string swDesc_Dragon = "Remove dragon riding restrictions (caution)"
-string swDesc_UIDriven = "Allow when player UI driven"
+string swDesc_AIDriven = "Allow when player UI driven"
 
 bool pluginLoaded = false
 bool _initialized = false
@@ -86,10 +86,10 @@ function OnOptionSelect(int option)
 		Dragon_Enabled = !Dragon_Enabled
 		self.SetToggleOptionValue(option, Dragon_Enabled, false)
 		UnlimitedFastTravel.SetOverride(self.kPFT_Dragon, Dragon_Enabled)
-	elseif option == swOID_UIDriven_Enabled
-		UIDriven_Enabled = !UIDriven_Enabled
-		self.SetToggleOptionValue(option, UIDriven_Enabled, false)
-		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, UIDriven_Enabled)
+	elseif option == swOID_AIDriven_Enabled
+		AIDriven_Enabled = !AIDriven_Enabled
+		self.SetToggleOptionValue(option, AIDriven_Enabled, false)
+		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, AIDriven_Enabled)
 	endif
 endfunction
 
@@ -113,7 +113,7 @@ function OnPageReset(string page)
 		self.AddHeaderOption("Additional options")
 		swOID_WorldspaceTravel_Enabled = self.AddToggleOption(swDesc_WorldspaceTravel, WorldspaceTravel_Enabled)
 		swOID_Dragon_Enabled = self.AddToggleOption(swDesc_Dragon, Dragon_Enabled)
-		swOID_UIDriven_Enabled = self.AddToggleOption(swDesc_UIDriven, UIDriven_Enabled)
+		swOID_AIDriven_Enabled = self.AddToggleOption(swDesc_AIDriven, AIDriven_Enabled)
 		;self.AddEmptyOption()
 	endif	
 endfunction
@@ -133,7 +133,7 @@ function ProcessPluginOptions()
 		UnlimitedFastTravel.SetOverride(self.kPFT_WorldspaceTravel, WorldspaceTravel_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_ScriptCondition, ScriptCondition_Enabled)
 		UnlimitedFastTravel.SetOverride(self.kPFT_Dragon, Dragon_Enabled)
-		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, UIDriven_Enabled)
+		UnlimitedFastTravel.SetOverride(self.kPFT_AIDriven, AIDriven_Enabled)
 	else
 		_initialized = true
 		Combat_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Combat)
@@ -145,7 +145,7 @@ function ProcessPluginOptions()
 		WorldspaceTravel_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_WorldspaceTravel)
 		ScriptCondition_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_ScriptCondition)
 		Dragon_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_Dragon)
-		UIDriven_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_AIDriven)
+		AIDriven_Enabled = UnlimitedFastTravel.HasOverride(self.kPFT_AIDriven)
 	endif
 endfunction
 

@@ -250,6 +250,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

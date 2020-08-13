@@ -74,13 +74,13 @@ namespace SKSE
             return false;
         }
 
-        if (!g_branchTrampoline.Create(Hook::GetAlignedTrampolineSize(MAX_TRAMPOLINE_BRANCH)))
+        if (!Hook::InitBranchTrampoline(skse, MAX_TRAMPOLINE_BRANCH))
         {
             MsgFatalError("Could not create branch trampoline.");
             return false;
         }
 
-        if (!g_localTrampoline.Create(Hook::GetAlignedTrampolineSize(MAX_TRAMPOLINE_CODEGEN)))
+        if (!Hook::InitLocalTrampoline(skse, MAX_TRAMPOLINE_CODEGEN))
         {
             MsgFatalError("Could not create codegen trampoline.");
             return false;
