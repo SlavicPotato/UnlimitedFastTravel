@@ -2,6 +2,13 @@
 
 static bool Initialize(const SKSEInterface* skse)
 {
+    gLog.Message("Initializing '%s' version %s (runtime %u.%u.%u.%u)",
+        PLUGIN_NAME, PLUGIN_VERSION_VERSTRING,
+        GET_EXE_VERSION_MAJOR(skse->runtimeVersion),
+        GET_EXE_VERSION_MINOR(skse->runtimeVersion),
+        GET_EXE_VERSION_BUILD(skse->runtimeVersion),
+        GET_EXE_VERSION_SUB(skse->runtimeVersion));
+
     if (!IAL::IsLoaded()) {
         MsgFatalError("Address library could not be loaded");
         return false;
@@ -30,13 +37,6 @@ extern "C"
 
     bool SKSEPlugin_Load(const SKSEInterface* skse)
     {
-        _MESSAGE("Initializing '%s' version %s (runtime %u.%u.%u.%u)",
-            PLUGIN_NAME, PLUGIN_VERSION_VERSTRING,
-            GET_EXE_VERSION_MAJOR(skse->runtimeVersion),
-            GET_EXE_VERSION_MINOR(skse->runtimeVersion),
-            GET_EXE_VERSION_BUILD(skse->runtimeVersion),
-            GET_EXE_VERSION_SUB(skse->runtimeVersion));
-
         bool ret = Initialize(skse);
 
         IAL::Release();

@@ -13,8 +13,7 @@ namespace SKSE
     bool Query(const SKSEInterface* skse, PluginInfo* info)
     {
         gLog.OpenRelative(CSIDL_MYDOCUMENTS, PLUGIN_LOG_PATH);
-        gLog.SetPrintLevel(IDebugLog::kLevel_Warning);
-        gLog.SetLogLevel(IDebugLog::kLevel_DebugMessage);
+        gLog.SetLogLevel(IDebugLog::LogLevel::Debug);
 
         info->infoVersion = PluginInfo::kInfoVersion;
         info->name = PLUGIN_NAME;
@@ -74,13 +73,15 @@ namespace SKSE
             return false;
         }
 
-        if (!Hook::InitBranchTrampoline(skse, MAX_TRAMPOLINE_BRANCH))
+        auto iface = static_cast<SKSETrampolineInterface*>(skse->QueryInterface(kInterface_Trampoline));
+
+        if (!Hook::InitBranchTrampoline(skse, iface, MAX_TRAMPOLINE_BRANCH))
         {
             MsgFatalError("Could not create branch trampoline.");
             return false;
         }
 
-        if (!Hook::InitLocalTrampoline(skse, MAX_TRAMPOLINE_CODEGEN))
+        if (!Hook::InitLocalTrampoline(skse, iface, MAX_TRAMPOLINE_CODEGEN))
         {
             MsgFatalError("Could not create codegen trampoline.");
             return false;

@@ -44,7 +44,7 @@ string swDesc_InAir = "While jumping or falling"
 string swDesc_WorldspaceTravel = "Allow worldspace fast travel"
 string swDesc_ScriptCondition = "When disabled via scripts/console"
 string swDesc_Dragon = "Remove dragon riding restrictions (caution)"
-string swDesc_AIDriven = "Allow when player UI driven"
+string swDesc_AIDriven = "Allow when player AI driven"
 
 bool pluginLoaded = false
 bool _initialized = false

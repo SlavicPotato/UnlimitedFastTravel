@@ -150,7 +150,7 @@ namespace UFT
     {
         if (message->type == SKSEMessagingInterface::kMessage_DataLoaded) {
             GetEventDispatcherList()->fastTravelEndEventDispatcher.AddEventSink(&g_fastTravelEventHandler);
-            Message("Fast travel event sink added");
+            Msg("Fast travel event sink added");
         }
     }
 
@@ -175,7 +175,7 @@ namespace UFT
 
     static void ApplyPatches()
     {
-        Message("Location ..");
+        Msg("Location ..");
         {
             struct FastTravelLocationInject : JITASM {
                 FastTravelLocationInject(uintptr_t retnOKAddr, uintptr_t retnBadBaseAddr, uintptr_t callAddr)
@@ -241,7 +241,7 @@ namespace UFT
             }
         };
 
-        Message("Script/console ..");
+        Msg("Script/console ..");
         {
             uintptr_t target = ftCheckFunc + 0x158;
 
@@ -249,7 +249,7 @@ namespace UFT
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 
-        Message("Dragon ..");
+        Msg("Dragon ..");
         {
             struct DragonConditionInject : JITASM {
                 DragonConditionInject(uintptr_t targetAddr, uintptr_t callAddr)
@@ -290,7 +290,7 @@ namespace UFT
             g_branchTrampoline.Write6Branch(target, code.get());
         }
 
-        Message("AI Driven ..");
+        Msg("AI Driven ..");
         {
             uintptr_t target = ftCheckFunc + 0x244;
 
@@ -299,7 +299,7 @@ namespace UFT
         }
 
 #ifdef _UFT_ENABLE_UNKNOWN
-        Message("Unk01 ..");
+        Msg("Unk01 ..");
         {
             struct Unk01Inject : JITASM {
                 Unk01Inject(uintptr_t targetAddr, uintptr_t callAddr)
@@ -346,23 +346,23 @@ namespace UFT
 
     static void InstallHooks()
     {
-        Message("In combat ..");
+        Msg("In combat ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0xA3, uintptr_t(EnemiesNear_Hook));
 
-        Message("Guard pursuit ..");
+        Msg("Guard pursuit ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0xDE, uintptr_t(GuardsPursuing_Hook));
 
-        Message("Taking damage ..");
+        Msg("Taking damage ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x135, uintptr_t(TakingDamage_Hook));
 
-        Message("Over-encumbered ..");
+        Msg("Over-encumbered ..");
         g_branchTrampoline.Write5Call(ftFunc + 0x4A, uintptr_t(IsOverEncumbered_Hook));
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x108, uintptr_t(IsOverEncumbered_Hook));
 
-        Message("In air ..");
+        Msg("In air ..");
         g_branchTrampoline.Write5Call(ftCheckFunc + 0x185, uintptr_t(InAir_Hook));
 
-        Message("Dragon (map markers) ..");
+        Msg("Dragon (map markers) ..");
         g_branchTrampoline.Write5Call(mmarkerCreateFunc + 0xF0, uintptr_t(DragonCondMM_Hook));
 
     }
@@ -381,7 +381,7 @@ namespace UFT
         ApplyPatches();
         InstallHooks();
 
-        Message("Done");
+        Msg("Done");
     }
 
     auto FastTravelEventHandler::ReceiveEvent(TESFastTravelEndEvent* evn, EventDispatcher<TESFastTravelEndEvent>* dispatcher)
