@@ -2,7 +2,7 @@
 
 namespace UFT
 {
-    static bool PP_HasOverride(StaticFunctionTag* base, SInt32 c)
+    static bool PP_HasOverride(StaticFunctionTag* base, std::int32_t c)
     {
         switch (c) {
         case PFTOverrideCodes::kPFT_Combat:
@@ -35,7 +35,7 @@ namespace UFT
         return false;
     }
 
-    static void PP_SetOverride(StaticFunctionTag* base, SInt32 c, bool v)
+    static void PP_SetOverride(StaticFunctionTag* base, std::int32_t c, bool v)
     {
         switch (c) {
         case PFTOverrideCodes::kPFT_All:
@@ -85,7 +85,7 @@ namespace UFT
         }
     }
 
-    static UInt32 PP_GetVersion(StaticFunctionTag* base)
+    static std::uint32_t PP_GetVersion(StaticFunctionTag* base)
     {
         return MAKE_PLUGIN_VERSION(
             PLUGIN_VERSION_MAJOR,
@@ -96,11 +96,11 @@ namespace UFT
     bool RegisterFunctions(VMClassRegistry* registry)
     {
         registry->RegisterFunction(
-            new NativeFunction1<StaticFunctionTag, bool, SInt32>("HasOverride", "UnlimitedFastTravel", PP_HasOverride, registry));
+            new NativeFunction1<StaticFunctionTag, bool, std::int32_t>("HasOverride", "UnlimitedFastTravel", PP_HasOverride, registry));
         registry->RegisterFunction(
-            new NativeFunction2<StaticFunctionTag, void, SInt32, bool>("SetOverride", "UnlimitedFastTravel", PP_SetOverride, registry));
+            new NativeFunction2<StaticFunctionTag, void, std::int32_t, bool>("SetOverride", "UnlimitedFastTravel", PP_SetOverride, registry));
         registry->RegisterFunction(
-            new NativeFunction0<StaticFunctionTag, UInt32>("GetVersion", "UnlimitedFastTravel", PP_GetVersion, registry));
+            new NativeFunction0<StaticFunctionTag, std::uint32_t>("GetVersion", "UnlimitedFastTravel", PP_GetVersion, registry));
 
         return true;
     }

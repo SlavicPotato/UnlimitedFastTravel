@@ -2,7 +2,7 @@
 
 namespace UFT
 {
-    enum PFTOverrideCodes : SInt32
+    enum PFTOverrideCodes : std::int32_t
     {
         kPFT_All = -1,
         kPFT_Combat = 0,

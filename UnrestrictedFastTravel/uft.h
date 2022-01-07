@@ -6,7 +6,7 @@ namespace UFT
         public BSTEventSink <TESFastTravelEndEvent>
     {
     protected:
-        virtual EventResult	ReceiveEvent(TESFastTravelEndEvent* evn, EventDispatcher<TESFastTravelEndEvent>* dispatcher) override;
+        virtual EventResult	ReceiveEvent(const TESFastTravelEndEvent* evn, BSTEventSource<TESFastTravelEndEvent>* dispatcher) override;
     };
 
     struct PFTState {
